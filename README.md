@@ -9,7 +9,8 @@ Product API for the e-commerce system: create and retrieve products. Implements 
 | **API specification** | [`api.yaml`](api.yaml) (OpenAPI 3.0; use with [Swagger Editor](https://editor.swagger.io/)) |
 | **Server code** | [`src/`](src/) — Go HTTP server |
 | **Dockerfile** | [`Dockerfile`](Dockerfile) (repo root) |
-| **Infrastructure (Terraform)** | Fork [CS6650_2b_demo](https://github.com/RuidiH/CS6650_2b_demo) and follow its README; point the image to this repo’s build if desired. |
+| **Infrastructure (Terraform)** | [`terraform/`](terraform/) — ECR, ECS (Fargate), network, logging. Based on [CS6650_2b_demo](https://github.com/RuidiH/CS6650_2b_demo). |
+| **Scripts** | [`scripts/`](scripts/) — `verify-api.sh`, `get-public-url.sh` |
 
 ---
 
@@ -75,18 +76,66 @@ Then use `http://localhost:8080` for the examples below.
 4. **Capture examples for submission**  
    The section [Example requests and response codes](#example-requests-and-response-codes) documents 200, 201, 400, and 404. Use those curls or record the same in Postman and add screenshots or an exported collection to your submission.
 
-### 3. Deploy to AWS (Terraform)
+### Part III — Deploy to AWS with Terraform
 
-1. Fork and clone the [CS6650_2b_demo](https://github.com/RuidiH/CS6650_2b_demo) repo.
-2. Follow its README to install Terraform and configure AWS.
-3. Build and push your Docker image to the ECR repo created by Terraform, then update the ECS service to use that image (or integrate this repo’s `Dockerfile` into the pipeline described in the demo).
+This repo includes a full Terraform setup (ECR, ECS Fargate, network, CloudWatch logging). It builds the Product API image from the repo root and pushes it to ECR, then runs it on ECS. **Requires AWS credentials** (e.g. [Learner’s Lab](https://awsacademy.instructure.com/) temporary credentials) and **Docker** (so Terraform can build and push the image).
+
+1. **Prerequisites**
+   - [Terraform](https://developer.hashicorp.com/terraform/install) installed.
+   - [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) installed and configured.
+   - **AWS credentials:** From Learner’s Lab (or your AWS account), run:
+     ```bash
+     aws configure
+     # Enter Access Key, Secret Key, region (e.g. us-west-2)
+     aws configure set aws_session_token <your-session-token>
+     ```
+   - **Docker** running locally (Terraform uses it to build and push the image to ECR).
+
+2. **Apply infrastructure** (from repo root)
+   ```bash
+   cd terraform
+   terraform init -upgrade
+   terraform apply -auto-approve
+   ```
+   Terraform builds and pushes the image using your local **Docker CLI** (via `local-exec`), so there is no Docker provider API version mismatch. Ensure Docker is running and you can run `docker build` and `aws ecr get-login-password`.
+
+   This creates the ECR repo, builds the Product API image from the root `Dockerfile`, pushes it to ECR, and starts an ECS Fargate service. The task gets a public IP (no load balancer in this minimal setup).
+
+3. **Get the Product API URL**
+   From repo root:
+   ```bash
+   chmod +x scripts/get-public-url.sh
+   ./scripts/get-public-url.sh
+   ```
+   Use the printed URL (e.g. `http://<public-ip>:8080`) for requests.
+
+4. **Verify the API**
+   ```bash
+   BASE_URL=http://<public-ip>:8080 ./scripts/verify-api.sh
+   ```
+   Or: `curl http://<public-ip>:8080/products`
+
+5. **Logs**
+   In AWS Console → CloudWatch → Log groups → `/ecs/product-api`. Or use AWS CLI to tail the log stream.
+
+6. **Clean up**
+   ```bash
+   cd terraform
+   terraform destroy -auto-approve
+   ```
+
+**Note:** The Terraform config uses the IAM role name `LabRole` (Learner’s Lab). If you use a different account, create an ECS task execution role and update `terraform/main.tf` to reference it instead of `data "aws_iam_role" "lab_role"`.
+
+### 3. Deploy to AWS (alternative: fork the demo repo)
+
+You can instead fork [CS6650_2b_demo](https://github.com/RuidiH/CS6650_2b_demo), follow its README, and replace its `src/` with this repo’s server (and point the Docker build at this repo’s `Dockerfile`). This repo’s `terraform/` is a self-contained option that already uses the Product API.
 
 ---
 
 ## API base URL
 
 - **Local / Docker:** `http://localhost:8080`
-- **AWS (after deploy):** use the URL from Terraform output (e.g. load balancer or service URL).
+- **AWS (after deploy):** run `./scripts/get-public-url.sh` to print the base URL (e.g. `http://<public-ip>:8080`).
 
 ---
 

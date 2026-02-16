@@ -1,0 +1,45 @@
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+/server
+/product-api
+
+# Go
+src/vendor/
+*.test
+*.out
+coverage.out
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Env and secrets (do not commit)
+.env
+.env.*
+!.env.example
+*.tfvars
+*.pem
+*.key
+*.p12
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Logs and large files
+*.log
+*.zip
+*.tar.gz

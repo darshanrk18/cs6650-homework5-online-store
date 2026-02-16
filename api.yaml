@@ -1,0 +1,122 @@
+# Product API - E-commerce Online Store (Homework 5)
+# Use with Swagger Editor: https://editor.swagger.io/
+openapi: 3.0.3
+info:
+  title: Product API
+  description: Product endpoints for the simple online store. Create and retrieve products.
+  version: 1.0.0
+
+paths:
+  /products:
+    get:
+      summary: List all products
+      operationId: listProducts
+      tags:
+        - Product
+      responses:
+        '200':
+          description: Successful response with list of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+        '500':
+          description: Internal server error
+    post:
+      summary: Create a product
+      operationId: createProduct
+      tags:
+        - Product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreate'
+      responses:
+        '201':
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Bad request - invalid input (e.g. missing required fields)
+        '500':
+          description: Internal server error
+
+  /products/{productId}:
+    get:
+      summary: Get a product by ID
+      operationId: getProduct
+      tags:
+        - Product
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Product found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Product not found
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    Product:
+      type: object
+      required:
+        - id
+        - name
+        - price
+      properties:
+        id:
+          type: string
+          description: Unique product identifier
+        name:
+          type: string
+          description: Product name
+        description:
+          type: string
+          description: Product description
+        price:
+          type: number
+          format: float
+          minimum: 0
+          description: Price (non-negative)
+        quantity:
+          type: integer
+          minimum: 0
+          description: Stock quantity
+    ProductCreate:
+      type: object
+      required:
+        - name
+        - price
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Product name
+        description:
+          type: string
+          description: Product description
+        price:
+          type: number
+          format: float
+          minimum: 0
+          description: Price (non-negative)
+        quantity:
+          type: integer
+          minimum: 0
+          description: Stock quantity (default 0)

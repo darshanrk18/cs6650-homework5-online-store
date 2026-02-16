@@ -6,6 +6,14 @@
 /server
 /product-api
 
+# Python
+.venv/
+venv/
+env/
+
+# Locust (generated; keep locally or attach for submission)
+Locust_*_Report.html
+
 # Go
 src/vendor/
 *.test
@@ -18,6 +26,7 @@ coverage.out
 *.swp
 .DS_Store
 Thumbs.db
+*pycache*
 
 # Env and secrets (do not commit)
 .env

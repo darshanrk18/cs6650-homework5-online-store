@@ -209,16 +209,80 @@ The API may return 500 on unexpected server errors (e.g. panics). Not demonstrat
 
 ---
 
-## Load testing (Locust)
+## Part IV — Load testing (Locust)
 
-See [`locustfile.py`](locustfile.py). Run the server, then:
+### 1. Install and pick target
+
+From the repo root, create a venv and install Locust (or use your own env):
 
 ```bash
-pip install locust
+python3 -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Then run Locust with `locust` (or `python -m locust`). If you don’t use the venv: `pip install locust`.
+
+**Target:** local (`http://localhost:8080`) or AWS (run `./scripts/get-public-url.sh` and use that base URL, e.g. `http://184.32.45.110:8080`).
+
+### 2. Run HttpUser test
+
+```bash
 locust -f locustfile.py --host=http://localhost:8080
 ```
 
-Open the web UI (default http://localhost:8089), set users and spawn rate, and run tests. Compare **HttpUser** vs **FastHttpUser** and document results (screenshots, RPS, latency) for your report.
+Open **http://localhost:8089**. Set e.g. **Number of users** 50, **Spawn rate** 10, run for 1–2 minutes. Take **screenshots** of the Stats and Charts tabs (RPS, response times, failures).
+
+### 3. Run FastHttpUser test (same params)
+
+```bash
+locust -f locustfile_fast.py --host=http://localhost:8080
+```
+
+Use the **same** user count and spawn rate. Take screenshots again. Compare RPS and latency with the HttpUser run.
+
+### 4. Stress test
+
+Increase users (e.g. 200, 500) and/or spawn rate until you see failure rate rise or latency spike. Note the approximate point where the server degrades. Screenshot and briefly describe what happened.
+
+### 5. What to document for your report / group
+
+- **Screenshots:** Stats and (optionally) Charts for HttpUser, FastHttpUser, and stress run.
+- **HttpUser vs FastHttpUser:** Did you see a difference in RPS or latency? If not, possible reasons: small response bodies, connection reuse, or the server/network being the bottleneck rather than the client. FastHttpUser often helps more at very high concurrency.
+- **Tradeoffs:** In a real store, **GET (list/get product)** is usually much more common than **POST (create)**. Our task weights (3 list, 2 get, 1 create) reflect that. The in-memory map + slice gives O(1) get by ID and O(n) list; for read-heavy traffic that’s fine until n is huge.
+- **Why stress test:** Shows where the system breaks (timeouts, 5xx, queueing) and helps you reason about capacity.
+
+### Locust report summary (AWS Product API)
+
+**HttpUser** — ~4 min, `locustfile.py`, target `http://184.32.45.110:8080`:
+
+| Type   | Name            | # Reqs | # Fails | Avg (ms) | RPS   |
+|--------|-----------------|--------|---------|----------|-------|
+| GET    | /products       | 4926   | 0       | 269.74   | 20.77 |
+| POST   | /products       | 1719   | 0       | 110.68   | 7.25  |
+| GET    | /products/[id]  | 3248   | 26      | 106.05   | 13.70 |
+| **Aggregated** |     | **9893** | **26** | **188.36** | **41.72** |
+
+**FastHttpUser** — ~5.5 min, `locustfile_fast.py`, same target:
+
+| Type   | Name            | # Reqs | # Fails | Avg (ms) | RPS   |
+|--------|-----------------|--------|---------|----------|-------|
+| GET    | /products       | 6490   | 0       | 412.22   | 19.91 |
+| POST   | /products       | 2130   | 0       | 109.03   | 6.53  |
+| GET    | /products/[id]  | 4290   | 0       | 105.14   | 13.16 |
+| **Aggregated** |     | **12910** | **0** | **260.16** | **39.6** |
+
+**Comparison:** Aggregated RPS is similar (41.72 vs 39.6). FastHttpUser had **no failures** (random IDs 1–100 hit existing products in this run). HttpUser had 26× 404 on GET /products/[id] (random ID not yet created). GET /products has the highest latency and size (full list); in the FastHttp run the list was larger (~189 KB avg) so GET /products avg latency was higher (412 ms). POST and GET-by-id are similar in both runs. The **server (and GET /products payload size)** is the main bottleneck; client type (HttpUser vs FastHttpUser) made little difference at this load.
+
+- **404s on GET /products/[id]:** random ID in 1–100 may not exist yet; a few 404s are expected depending on timing.
+
+### Headless (optional)
+
+Run without the UI and print a summary:
+
+```bash
+locust -f locustfile.py --host=http://localhost:8080 --headless -u 50 -r 10 -t 1m
+```
 
 ---
 

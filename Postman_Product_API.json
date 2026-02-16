@@ -1,0 +1,98 @@
+{
+  "info": {
+    "name": "Product API (CS6650 HW5)",
+    "description": "Product API: list, get by ID, create. Covers 200, 201, 400, 404.",
+    "schema": "https://schema.postman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ],
+  "item": [
+    {
+      "name": "200 OK - List products",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/products"
+      }
+    },
+    {
+      "name": "200 OK - Get product by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/products/1"
+      }
+    },
+    {
+      "name": "201 Created - Create product",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Widget\",\n  \"description\": \"A useful widget\",\n  \"price\": 9.99,\n  \"quantity\": 100\n}"
+        },
+        "url": "{{baseUrl}}/products"
+      }
+    },
+    {
+      "name": "400 Bad Request - Missing name",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"price\": 5.0}"
+        },
+        "url": "{{baseUrl}}/products"
+      }
+    },
+    {
+      "name": "400 Bad Request - Negative price",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"Thing\", \"price\": -1}"
+        },
+        "url": "{{baseUrl}}/products"
+      }
+    },
+    {
+      "name": "404 Not Found - Product ID does not exist",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/products/nonexistent-id-12345"
+      }
+    },
+    {
+      "name": "404 Not Found - Wrong path",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/unknown"
+      }
+    }
+  ]
+}

@@ -141,7 +141,7 @@ You can instead fork [CS6650_2b_demo](https://github.com/RuidiH/CS6650_2b_demo),
 
 ## Example requests and response codes
 
-All examples use `curl`. You can import these into [Postman](https://www.postman.com/) or use a Postman collection export.
+All examples use `curl`. A **Postman collection** is included: [`Postman_Product_API.json`](Postman_Product_API.json). Import it in Postman, set the `baseUrl` variable (e.g. `http://localhost:8080` or your AWS URL), and run the requests to exercise 200, 201, 400, and 404.
 
 ### **200 OK** — List products
 

@@ -17,3 +17,14 @@ output "aws_region" {
   description = "AWS region used for deployment"
   value       = var.aws_region
 }
+
+# Part 3: use this URL for load testing (Locust host)
+output "alb_dns_name" {
+  description = "ALB DNS name; use as host for load tests: http://<this_value>"
+  value       = module.alb.alb_dns_name
+}
+
+output "alb_url" {
+  description = "Full URL for the Product API via ALB (port 80)"
+  value       = "http://${module.alb.alb_dns_name}"
+}

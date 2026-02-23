@@ -40,17 +40,33 @@ resource "null_resource" "build_and_push" {
   depends_on = [module.ecr]
 }
 
+# ALB + target group for Part 3 (horizontal scaling)
+module "alb" {
+  source                  = "./modules/alb"
+  service_name            = var.service_name
+  vpc_id                  = module.network.vpc_id
+  subnet_ids              = module.network.subnet_ids
+  container_port          = var.container_port
+  task_security_group_id  = module.network.security_group_id
+}
+
 module "ecs" {
-  source             = "./modules/ecs"
-  service_name       = var.service_name
-  image              = "${module.ecr.repository_url}:latest"
-  container_port     = var.container_port
-  subnet_ids         = module.network.subnet_ids
-  security_group_ids = [module.network.security_group_id]
-  execution_role_arn = data.aws_iam_role.lab_role.arn
-  task_role_arn      = data.aws_iam_role.lab_role.arn
-  log_group_name     = module.logging.log_group_name
-  ecs_count          = var.ecs_count
-  region             = var.aws_region
-  depends_on         = [null_resource.build_and_push]
+  source                         = "./modules/ecs"
+  service_name                   = var.service_name
+  image                          = "${module.ecr.repository_url}:latest"
+  container_port                 = var.container_port
+  subnet_ids                     = module.network.subnet_ids
+  security_group_ids             = [module.network.security_group_id]
+  execution_role_arn             = data.aws_iam_role.lab_role.arn
+  task_role_arn                  = data.aws_iam_role.lab_role.arn
+  log_group_name                 = module.logging.log_group_name
+  ecs_count                      = var.ecs_count
+  region                         = var.aws_region
+  target_group_arn               = module.alb.target_group_arn
+  container_name                 = "${var.service_name}-container"
+  health_check_grace_period_seconds = var.health_check_grace_period_seconds
+  min_capacity                   = var.ecs_min_capacity
+  max_capacity                   = var.ecs_max_capacity
+  autoscaling_cpu_target         = var.ecs_autoscaling_cpu_target
+  depends_on                     = [null_resource.build_and_push, module.alb]
 }

@@ -60,3 +60,39 @@ variable "memory" {
   default     = "512"
   description = "Memory (MiB)"
 }
+
+variable "target_group_arn" {
+  type        = string
+  default     = null
+  description = "ARN of ALB target group to attach; if set, service is registered with the load balancer"
+}
+
+variable "container_name" {
+  type        = string
+  default     = null
+  description = "Container name for load_balancer block; required when target_group_arn is set"
+}
+
+variable "health_check_grace_period_seconds" {
+  type        = number
+  default     = 60
+  description = "Grace period before health check failures count (for ALB target health)"
+}
+
+variable "min_capacity" {
+  type        = number
+  default     = 2
+  description = "Minimum number of tasks (for auto scaling)"
+}
+
+variable "max_capacity" {
+  type        = number
+  default     = 4
+  description = "Maximum number of tasks (for auto scaling)"
+}
+
+variable "autoscaling_cpu_target" {
+  type        = number
+  default     = 70.0
+  description = "Target average CPU utilization % for auto scaling"
+}

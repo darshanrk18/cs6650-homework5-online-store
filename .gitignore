@@ -5,6 +5,7 @@
 *.dylib
 /server
 /product-api
+src/server
 
 # Python
 .venv/

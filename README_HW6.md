@@ -151,3 +151,17 @@ During a load test: ECS → Tasks → select a running task → **Stop**. Confir
 | **Part 3:** ALB module | `terraform/modules/alb/` |
 | **Part 3:** ECS (load_balancer + auto scaling) | `terraform/modules/ecs/main.tf` |
 | **Part 3:** Root wiring | `terraform/main.tf`, `terraform/variables.tf`, `terraform/outputs.tf` |
+
+---
+
+## Midterm Mastery Part II (Step III — Crashing and Recovering)
+
+- **Fault injection:** Enabled when `FAULT_INJECTION_ENABLED=true` (or `1`) in the container. Query params on `GET /products/search?q=...`:
+  - `crash` / `fault` → process exits (task stops).
+  - `slow` → handler sleeps 60 s.
+  - `flaky` → simulated flaky dependency (80% 500); protected by circuit breaker (fail fast after 5 failures).
+- **Terraform:** Use `fault_injection_enabled = true` and optionally `ecs_count` / min/max capacity. Example configs: `terraform/midterm-problematic.tfvars.example` (1 task), `terraform/midterm-fixed.tfvars.example` (2 tasks). Copy to `.tfvars` and apply with `-var-file=...`.
+- **AWS runbook:** `Midterm_PartII_AWS_Runbook.md` — step-by-step procedure for deploying problematic vs fixed scenarios, running load tests, and capturing evidence.
+- **Report:** `Midterm_Mastery_PartII_Report.md` — paste screenshots into the placeholders and export to PDF for submission.
+- **Locust:** `locustfile_midterm_fault.py` — mix of normal search, `?q=flaky`, and `?q=crash` for the demo.
+- **Circuit breaker:** `src/internal/circuitbreaker/breaker.go`.

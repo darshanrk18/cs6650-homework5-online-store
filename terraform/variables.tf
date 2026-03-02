@@ -57,3 +57,9 @@ variable "log_retention_days" {
   default     = 7
   description = "CloudWatch log retention in days"
 }
+
+variable "fault_injection_enabled" {
+  type        = bool
+  default     = false
+  description = "When true, set FAULT_INJECTION_ENABLED in the container for resilience/fault-injection testing (crash, slow, flaky query params)."
+}

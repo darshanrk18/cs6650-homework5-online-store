@@ -68,5 +68,6 @@ module "ecs" {
   min_capacity                   = var.ecs_min_capacity
   max_capacity                   = var.ecs_max_capacity
   autoscaling_cpu_target         = var.ecs_autoscaling_cpu_target
+  fault_injection_enabled        = var.fault_injection_enabled
   depends_on                     = [null_resource.build_and_push, module.alb]
 }

@@ -21,6 +21,10 @@ resource "aws_ecs_task_definition" "this" {
       containerPort = var.container_port
     }]
 
+    environment = var.fault_injection_enabled ? [
+      { name = "FAULT_INJECTION_ENABLED", value = "true" }
+    ] : []
+
     logConfiguration = {
       logDriver = "awslogs"
       options = {

@@ -96,3 +96,9 @@ variable "autoscaling_cpu_target" {
   default     = 70.0
   description = "Target average CPU utilization % for auto scaling"
 }
+
+variable "fault_injection_enabled" {
+  type        = bool
+  default     = false
+  description = "When true, set FAULT_INJECTION_ENABLED in the container environment for resilience testing."
+}

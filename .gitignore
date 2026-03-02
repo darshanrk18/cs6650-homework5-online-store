@@ -52,5 +52,7 @@ override.tf.json
 # Logs and large files
 *.log
 *.zip
+*.html
+Midterm*
 *.tar.gz
 screenshots/
